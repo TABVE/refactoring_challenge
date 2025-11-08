@@ -17,6 +17,23 @@ from legacy_code.reach import initialize_reaches
 def mm_day_to_m3s(mm_per_day: float, area_km2: float) -> float:
     """Converts mm/day over area_km2 to m^3/s.
     Formula: (mm/1000) * (area_km2*1e6) / 86400
+
+    Parameters
+    ----------
+    mm_per_day : float
+        Depth in mm/day.
+    area_km2 : float
+        Area in km^2.
+
+    Returns
+    -------
+    float
+        Flow in m^3/s, nan if area_km2 is zero.
+
+    Raises
+    ------
+    ValueError
+        If area_km2 is negative.
     """
     if area_km2 == 0:
         return float("nan")
@@ -31,6 +48,27 @@ def mm_day_to_m3s(mm_per_day: float, area_km2: float) -> float:
 def mix_concentration(q1: float, c1: float, q2: float, c2: float) -> float:
     """Calculates mixed concentration from two flows and concentrations.
     Formula: (q1*c1 + q2*c2)/(q1+q2) when q1+q2>0.
+
+    Parameters
+    ----------
+    q1 : float
+        Flow 1 in m^3/s.
+    c1 : float
+        Concentration 1 in mg/L.
+    q2 : float
+        Flow 2 in m^3/s.
+    c2 : float
+        Concentration 2 in mg/L.
+
+    Returns
+    -------
+    float
+        Mixed concentration in mg/L, nan if total flow is negative.
+
+    Raises
+    ------
+    ValueError
+        If total flow (q1 + q2) is negative.
     """
     try:
         if q1 + q2 == 0:
@@ -43,11 +81,7 @@ def mix_concentration(q1: float, c1: float, q2: float, c2: float) -> float:
         return float("nan")
 
 
-# Huge function doing everything.
-# noqa: C901 (complexity) — this is legacy code on purpose
-
-
-def run_all():
+def run_all() -> Dict[str, Any]:
     state: Dict[str, Any] = {
         "last_q": 0.0,
         "rows": [],

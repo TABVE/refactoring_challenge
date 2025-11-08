@@ -1,9 +1,7 @@
 class Reach:
     """Represents a river reach with an ID, area (in km²), and tracer concentration (in mg/L)."""
 
-    def __init__(
-        self, id: str, area_km2: float, tracer_init_mgL: float | None = None
-    ):
+    def __init__(self, id: str, area_km2: float, tracer_init_mgL: float | None = None):
         self.id = id
         self.area = float(area_km2)
         self.tracer_init = tracer_init_mgL or 0.0

@@ -27,8 +27,8 @@ def test_reach_accepts_string_area_and_nonzero_tracer():
 
 def test_initialize_reaches_success_with_string_inputs_and_zero_tracer():
     data = [
-        {"id": "A", "area_km2": "10", "tracer_init_mgL": "2.5"},
-        {"id": "B", "area_km2": "5", "tracer_init_mgL": "0"},
+        {"reach_id": "A", "area_km2": "10", "tracer_init_mgL": "2.5"},
+        {"reach_id": "B", "area_km2": "5", "tracer_init_mgL": "0"},
     ]
     reach_a, reach_b = initialize_reaches(data)
     assert isinstance(reach_a, Reach) and isinstance(reach_b, Reach)
@@ -39,8 +39,8 @@ def test_initialize_reaches_success_with_string_inputs_and_zero_tracer():
 
 def test_initialize_reaches_uses_defaults_when_keys_missing():
     data = [
-        {"id": "A"},  # missing area and tracer_init -> defaults to 0.0
-        {"id": "B", "area_km2": "3.2"},  # missing tracer_init -> default 0.0
+        {"reach_id": "A"},  # missing area and tracer_init -> defaults to 0.0
+        {"reach_id": "B", "area_km2": "3.2"},  # missing tracer_init -> default 0.0
     ]
     a, b = initialize_reaches(data)
     assert a.id == "A" and a.area == 0.0 and a.tracer_init == 0.0
@@ -49,6 +49,6 @@ def test_initialize_reaches_uses_defaults_when_keys_missing():
 
 def test_initialize_reaches_raises_for_invalid_length():
     with pytest.raises(RuntimeError, match="need exactly 2 reaches A and B"):
-        initialize_reaches([{"id": "only_one"}])
+        initialize_reaches([{"reach_id": "only_one"}])
     with pytest.raises(RuntimeError, match="need exactly 2 reaches A and B"):
-        initialize_reaches([{"id": "a"}, {"id": "b"}, {"id": "c"}])
+        initialize_reaches([{"reach_id": "a"}, {"reach_id": "b"}, {"reach_id": "c"}])

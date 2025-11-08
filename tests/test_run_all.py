@@ -22,11 +22,12 @@ def test_run_all(mock_read_csv):
         },
     ]
     mock_reaches = [
-        {"id": "A", "area_km2": "100", "tracer_init_mgL": "5.0"},
-        {"id": "B", "area_km2": "200", "tracer_init_mgL": "2.0"},
+        {"reach_id": "A", "area_km2": "100", "tracer_init_mgL": "5.0"},
+        {"reach_id": "B", "area_km2": "200", "tracer_init_mgL": "2.0"},
     ]
     mock_read_csv.side_effect = [mock_forcing, mock_reaches]
-    results = run_all()
+    state = run_all()
+    results = state["rows"]
 
     assert len(results) == 4  # 2 dates * 2 reaches
 
