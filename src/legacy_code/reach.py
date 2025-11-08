@@ -11,7 +11,7 @@ class Reach:
         self.local_flow_rate = float("nan")
 
 
-def initialize_reaches(reach_dicts: list[dict[str, str]]) -> list[Reach]:
+def initialize_reaches(reach_dicts: list[dict[str, str]]) -> tuple[Reach, Reach]:
     """Initialize Reach objects from a list of dictionaries."""
     if len(reach_dicts) != 2:
         raise RuntimeError("need exactly 2 reaches A and B")

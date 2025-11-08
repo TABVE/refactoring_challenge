@@ -1,9 +1,11 @@
-import pytest
 from datetime import date
 from legacy_code.forcing import Forcing, initialize_forcing
 
 
-def test_forcing_initialization():
+# AI-ASSIST: all written by GitHub Copilot, added type hints manually
+
+
+def test_forcing_initialization() -> None:
     # Test basic initialization
     d = date(2023, 1, 1)
     f = Forcing(d, 10.0, 5.0, 2.0)
@@ -13,7 +15,7 @@ def test_forcing_initialization():
     assert f.upstream_tracer_concentration == 2.0
 
 
-def test_initialize_forcing():
+def test_initialize_forcing() -> None:
     # Test with complete data
     forcing_dicts = [
         {
@@ -32,7 +34,7 @@ def test_initialize_forcing():
     assert forcings[0].upstream_tracer_concentration == 2.0
 
 
-def test_initialize_forcing_missing_values():
+def test_initialize_forcing_missing_values() -> None:
     # Test with missing optional values
     forcing_dicts = [{"date": "2023-01-01"}]
     forcings = initialize_forcing(forcing_dicts)
@@ -42,7 +44,7 @@ def test_initialize_forcing_missing_values():
     assert forcings[0].upstream_tracer_concentration == 0.0
 
 
-def test_initialize_forcing_multiple_entries():
+def test_initialize_forcing_multiple_entries() -> None:
     # Test with multiple entries
     forcing_dicts = [
         {"date": "2023-01-01", "precip_mm": "10.0"},

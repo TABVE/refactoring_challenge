@@ -5,11 +5,10 @@ from __future__ import annotations
 
 
 import csv
-import math
 from typing import Any, Dict, List
 
 from legacy_code.config import CONFIG
-from legacy_code.utils import parse_date, read_csv_as_dicts
+from legacy_code.utils import read_csv_as_dicts
 from legacy_code.forcing import initialize_forcing
 from legacy_code.reach import initialize_reaches
 
@@ -86,18 +85,17 @@ def run_all() -> Dict[str, Any]:
         "last_q": 0.0,
         "rows": [],
     }
+
     fpath = CONFIG.get("paths", {}).get("forcing") or "data/forcing.csv"
     rpath = CONFIG.get("paths", {}).get("reaches") or "data/reaches.csv"
 
-    forcing = read_csv_as_dicts(fpath)
-    reaches = read_csv_as_dicts(rpath)
-    if len(reaches) < 2:
-        raise RuntimeError("need at least 2 reaches A and B")
+    forcing_data = read_csv_as_dicts(fpath)
+    reach_data = read_csv_as_dicts(rpath)
 
     results: List[Dict[str, Any]] = []
 
-    forcings = initialize_forcing(forcing)
-    reach_a, reach_b = initialize_reaches(reaches)
+    forcings = initialize_forcing(forcing_data)
+    reach_a, reach_b = initialize_reaches(reach_data)
 
     for forcing in forcings:
         date = forcing.date
@@ -155,7 +153,7 @@ def run_all() -> Dict[str, Any]:
     return state
 
 
-def write_output_csv(path: str, state) -> None:
+def write_output_csv(path: str, state: dict[str, Any]) -> None:
     """Writes the output to a CSV file.
 
     Parameters

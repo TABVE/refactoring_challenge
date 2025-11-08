@@ -6,7 +6,7 @@ from legacy_code.water_model import run_all
 
 
 @patch("legacy_code.water_model.read_csv_as_dicts")
-def test_run_all(mock_read_csv):
+def test_run_all(mock_read_csv) -> None:
     mock_forcing = [
         {
             "date": "2023-01-01",

@@ -12,7 +12,6 @@ python = "3.12.12"
 
 [tool.ruff]
 line-length = 88
-target-version = ['py312']
 
 [tool.black]
 line-length = 88

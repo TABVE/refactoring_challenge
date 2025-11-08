@@ -15,7 +15,9 @@ from legacy_code.water_model import mix_concentration, mm_day_to_m3s
         (-3.0, 10.0, -1.0, 0.0),
     ],
 )
-def test_tracer_mixing_should_be_flow_weighted(q1, c1, q2, c2) -> None:
+def test_tracer_mixing_should_be_flow_weighted(
+    q1: float, c1: float, q2: float, c2: float
+) -> None:
     """Test that tracer mixing uses flow-weighted mass balance."""
     # Calculate expected flow-weighted concentration
     if q1 + q2 == 0:
@@ -46,7 +48,7 @@ def test_tracer_mixing_should_be_flow_weighted(q1, c1, q2, c2) -> None:
     ],
 )
 def test_mm_day_to_m3s_conversion_on_1km2_should_be_1_m3s(
-    mm_per_day, area_km2, expected
+    mm_per_day: float, area_km2: float, expected: float
 ) -> None:
     """Test that mm/day to m^3/s conversion is correct for 1 km^2 area."""
     got = mm_day_to_m3s(mm_per_day, area_km2)

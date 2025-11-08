@@ -5,14 +5,12 @@ from __future__ import annotations
 
 import csv
 from datetime import date
-from typing import Any, Dict, List
-
-# Global mutable cache — smell
-CACHE: Dict[str, Any] = {}
+from typing import Dict, List
 
 
 def parse_date(text: str) -> date:
     """Fragile date parser."""
+
     parts = text.strip().split("-")
     if len(parts) != 3:
         # Try slash
