@@ -1,6 +1,5 @@
-import pytest
+import math
 from unittest.mock import patch
-from datetime import datetime
 
 
 from legacy_code.water_model import run_all
@@ -47,3 +46,12 @@ def test_run_all(mock_read_csv):
     assert results[1]["q_m3s"] > results[0]["q_m3s"]
 
     mock_read_csv.assert_called()
+    
+    # In order to refactor check actual values of first timestep, will be removed later
+    assert math.isclose(
+            results[-1]["c_mgL"], 3.137311847474605, rel_tol=1e-12
+        )
+    assert math.isclose(
+            results[-2]["c_mgL"], 3.6718633402577496, rel_tol=1e-12
+        )
+    
