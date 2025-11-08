@@ -1,13 +1,9 @@
 from __future__ import annotations
 
-# Failing regression tests that capture real defects in legacy_code.
-# Candidates should fix the bugs during refactor and make these pass (or replace with equivalent tests on src/).
-
 import math
 import pytest
 
-# AI-ASSIST: Example marker to illustrate how to annotate AI-influenced code or tests.
-from legacy_code import water_model as legacy
+from legacy_code.water_model import mix_concentration, mm_day_to_m3s
 
 
 @pytest.mark.parametrize(
@@ -29,7 +25,7 @@ def test_tracer_mixing_should_be_flow_weighted(q1, c1, q2, c2) -> None:
     else:
         expected = (q1 * c1 + q2 * c2) / (q1 + q2)
 
-    got = legacy.mix_concentration(q1, c1, q2, c2)
+    got = mix_concentration(q1, c1, q2, c2)
 
     if math.isnan(expected):
         assert math.isnan(
@@ -50,7 +46,7 @@ def test_tracer_mixing_should_be_flow_weighted(q1, c1, q2, c2) -> None:
 )
 def test_mm_day_to_m3s_conversion_on_1km2_should_be_1_m3s(mm_per_day, area_km2, expected) -> None:
     """Test that mm/day to m^3/s conversion is correct for 1 km^2 area."""
-    got = legacy.mm_day_to_m3s(mm_per_day, area_km2)
+    got = mm_day_to_m3s(mm_per_day, area_km2)
 
     if math.isnan(expected):
         assert math.isnan(
@@ -64,4 +60,4 @@ def test_mm_day_to_m3s_conversion_on_1km2_should_be_1_m3s(mm_per_day, area_km2, 
 def test_mm_day_to_m3s_negative_area_should_raise() -> None:
     """Test that negative area raises ValueError."""
     with pytest.raises(ValueError):
-        legacy.mm_day_to_m3s(100.0, -1.0)
+        mm_day_to_m3s(100.0, -1.0)

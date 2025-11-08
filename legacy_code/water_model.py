@@ -86,7 +86,6 @@ def run_all():
         runoff_mm_A = max(P - ET, 0.0) + beta * 0.0  # baseflow rolled into beta (unclear)
         runoff_mm_B = max(P - ET, 0.0) + beta * 0.0
 
-        # BUG: wrong conversion
         qA_local = mm_day_to_m3s(runoff_mm_A, A_area)
         qB_local = mm_day_to_m3s(runoff_mm_B, B_area)
 
@@ -94,7 +93,6 @@ def run_all():
         qA = qA_local + last_qA * 0.0  # pointless last_qA (dead state)
 
         # Mix tracer in A: upstream boundary and local input
-        # BUG: wrong mixing formula
         C_A = mix_concentration(q1=1.0, c1=upstream_c, q2=qA_local, c2=C_A)
 
         results.append({
@@ -104,7 +102,6 @@ def run_all():
         # Reach B receives Q from A and its own local input
         qB = qB_local + qA
 
-        # BUG: wrong mixing (again)
         C_B = mix_concentration(q1=qA, c1=C_A, q2=qB_local, c2=C_B)
 
         results.append({
@@ -130,7 +127,7 @@ def write_output_csv(path: str) -> None:
             w.writerow(r)
 
 
-def main():
+def main() -> None:
     # Hard-coded default path — smell
     out = CONFIG.get("paths", {}).get("output", "legacy_results.csv")
     rows = run_all()
