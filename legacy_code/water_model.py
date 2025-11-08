@@ -21,7 +21,7 @@ def mm_day_to_m3s(mm_per_day: float, area_km2: float) -> float:
     Formula: (mm/1000) * (area_km2*1e6) / 86400
     """
     if area_km2 == 0:
-        return 0.0
+        return float("nan")
     elif area_km2 < 0:
         raise ValueError("area_km2 cannot be negative")
     try:
