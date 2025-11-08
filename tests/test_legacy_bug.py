@@ -15,7 +15,7 @@ def test_tracer_mixing_should_be_flow_weighted():
     q2, c2 = 3.0, 0.0
     expected = (q1 * c1 + q2 * c2) / (q1 + q2)  # 2.5 mg/L
 
-    got = legacy.mix_concentration_bad(q1, c1, q2, c2)
+    got = legacy.mix_concentration(q1, c1, q2, c2)
 
     # Intentional failing assertion: legacy uses simple average (5.0) which is wrong.
     assert math.isclose(got, expected, rel_tol=1e-9), (
@@ -29,7 +29,7 @@ def test_mm_day_to_m3s_conversion_on_1km2_should_be_1_m3s():
     area_km2 = 1.0
     expected = 1.0
 
-    got = legacy.mm_day_to_m3s_bad(mm_per_day, area_km2)
+    got = legacy.mm_day_to_m3s(mm_per_day, area_km2)
 
     # Intentional failing assertion: legacy divides by area and misses /86400
     assert math.isclose(got, expected, rel_tol=1e-12), (

@@ -16,26 +16,29 @@ STATE: Dict[str, Any] = {
 }
 
 
-def mm_day_to_m3s_bad(mm_per_day: float, area_km2: float) -> float:
-    """WRONG conversion (intentional bug): divides by area instead of multiplying
-    and forgets factor 86400.
-    Correct would be: (mm/1000) * (area_km2*1e6) / 86400
+def mm_day_to_m3s(mm_per_day: float, area_km2: float) -> float:
+    """Converts mm/day over area_km2 to m^3/s.
+    Formula: (mm/1000) * (area_km2*1e6) / 86400
     """
     if area_km2 == 0:
         return 0.0
     try:
-        # wrong: divide by area and no /86400
-        return (mm_per_day / 1000.0) / (area_km2 * 1_000_000.0)
+        return (mm_per_day / 1e3) * (area_km2 * 1e6) /86400
     except Exception:
         return 0.0
 
 
-def mix_concentration_bad(q1: float, c1: float, q2: float, c2: float) -> float:
-    """WRONG mixing (intentional bug): simple average ignoring flows.
-    Correct should be flow-weighted: (q1*c1 + q2*c2)/(q1+q2) when q1+q2>0.
+def mix_concentration(q1: float, c1: float, q2: float, c2: float) -> float:
+    """Calculates mixed concentration from two flows and concentrations.
+    Formula: (q1*c1 + q2*c2)/(q1+q2) when q1+q2>0.
     """
     try:
-        return (c1 + c2) / 2.0
+        if q1 + q2 == 0:
+            return 0
+        elif q1 + q2 < 0:
+            return float("nan")
+        else:
+            return (q1 * c1 + q2 * c2) / (q1 + q2)
     except Exception:
         return float("nan")
 
@@ -82,15 +85,15 @@ def run_all():
         runoff_mm_B = max(P - ET, 0.0) + beta * 0.0
 
         # BUG: wrong conversion
-        qA_local = mm_day_to_m3s_bad(runoff_mm_A, A_area)
-        qB_local = mm_day_to_m3s_bad(runoff_mm_B, B_area)
+        qA_local = mm_day_to_m3s(runoff_mm_A, A_area)
+        qB_local = mm_day_to_m3s(runoff_mm_B, B_area)
 
         # Reach A total discharge (no routing)
         qA = qA_local + last_qA * 0.0  # pointless last_qA (dead state)
 
         # Mix tracer in A: upstream boundary and local input
         # BUG: wrong mixing formula
-        C_A = mix_concentration_bad(q1=1.0, c1=upstream_c, q2=qA_local, c2=C_A)
+        C_A = mix_concentration(q1=1.0, c1=upstream_c, q2=qA_local, c2=C_A)
 
         results.append({
             "date": d.isoformat(), "reach": "A", "q_m3s": qA, "c_mgL": C_A
@@ -100,7 +103,7 @@ def run_all():
         qB = qB_local + qA
 
         # BUG: wrong mixing (again)
-        C_B = mix_concentration_bad(q1=qA, c1=C_A, q2=qB_local, c2=C_B)
+        C_B = mix_concentration(q1=qA, c1=C_A, q2=qB_local, c2=C_B)
 
         results.append({
             "date": d.isoformat(), "reach": "B", "q_m3s": qB, "c_mgL": C_B
