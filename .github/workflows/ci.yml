@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # -------------------------
+      # ✅ Cache Poetry + deps
+      # -------------------------
+      - name: Cache Poetry and virtualenvs
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry
+            ~/.local/share/pypoetry
+            .venv
+          key: poetry-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: "1.8.3"
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-root
+
+      # ---------------------------------
+      # ✅ Run tests + generate coverage
+      # ---------------------------------
+      - name: Run tests with coverage
+        run: |
+          poetry run pytest \
+            --cov=deltares_model \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            --cov-fail-under=85
+
+      # -----------------------------------------------------
+      # ✅ Upload coverage.xml and test results as artifacts
+      # -----------------------------------------------------
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}-${{ matrix.python-version }}
+          path: coverage.xml
+
+      - name: Upload pytest results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-results-${{ matrix.os }}-${{ matrix.python-version }}
+          path: ./.pytest_cache

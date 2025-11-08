@@ -1,6 +1,6 @@
 from datetime import date
 
-from legacy_code.utils import parse_date
+from deltares_model.utils import parse_date
 
 
 class Forcing:

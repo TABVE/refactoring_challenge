@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import date
 import pytest
 
-from legacy_code.utils import (
+from deltares_model.utils import (
     parse_date,
     read_csv_as_dicts,
 )

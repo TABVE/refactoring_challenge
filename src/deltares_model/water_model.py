@@ -7,10 +7,9 @@ from __future__ import annotations
 import csv
 from typing import Any, Dict, List
 
-from legacy_code.config import CONFIG
-from legacy_code.utils import read_csv_as_dicts
-from legacy_code.forcing import initialize_forcing
-from legacy_code.reach import initialize_reaches
+from deltares_model.utils import read_csv_as_dicts
+from deltares_model.forcing import initialize_forcing
+from deltares_model.reach import initialize_reaches
 
 
 def mm_day_to_m3s(mm_per_day: float, area_km2: float) -> float:
@@ -80,23 +79,27 @@ def mix_concentration(q1: float, c1: float, q2: float, c2: float) -> float:
         return float("nan")
 
 
-def run_all() -> Dict[str, Any]:
-    state: Dict[str, Any] = {
-        "last_q": 0.0,
-        "rows": [],
-    }
+def run_all(csv_forcing_path: str, csv_reaches_path: str) -> List[Dict[str, Any]]:
+    """Runs the water balance model for all time steps of the forcing.
 
-    fpath = CONFIG.get("paths", {}).get("forcing") or "data/forcing.csv"
-    rpath = CONFIG.get("paths", {}).get("reaches") or "data/reaches.csv"
+    Parameters
+    ----------
+    csv_forcing_path
+        Path to the forcing CSV file.
+    csv_reaches_path
+        Path to the reaches CSV file.
 
-    forcing_data = read_csv_as_dicts(fpath)
-    reach_data = read_csv_as_dicts(rpath)
-
-    results: List[Dict[str, Any]] = []
+    Returns
+    -------
+        State dictionary with results and last_q.
+    """
+    forcing_data = read_csv_as_dicts(csv_forcing_path)
+    reach_data = read_csv_as_dicts(csv_reaches_path)
 
     forcings = initialize_forcing(forcing_data)
     reach_a, reach_b = initialize_reaches(reach_data)
 
+    results: List[Dict[str, Any]] = []
     for forcing in forcings:
         date = forcing.date
 
@@ -149,31 +152,41 @@ def run_all() -> Dict[str, Any]:
             }
         )
 
-    state["rows"] = results
-    return state
+    return results
 
 
-def write_output_csv(path: str, state: dict[str, Any]) -> None:
+def write_output_csv(path: str, results: List[Dict[str, Any]]) -> None:
     """Writes the output to a CSV file.
 
     Parameters
     ----------
     path
         The file path to write the CSV to.
+    results
+        The results dictionary containing the data to write.
     """
-    rows = state.get("rows") or []
     fieldnames = ["date", "reach", "q_m3s", "c_mgL"]
     with open(path, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=fieldnames)
         w.writeheader()
-        for r in rows:
+        for r in results:
             w.writerow(r)
 
 
-def main() -> None:
-    """Main function to run the water model and write output."""
-    # Hard-coded default path — smell
-    path_out = CONFIG.get("paths", {}).get("output", "legacy_results.csv")
-    state = run_all()
-    write_output_csv(path_out, state)
-    print(f"Wrote {len(state["rows"])} rows to {path_out}")
+def calculate_waterbalance(
+    path_reaches: str, path_forcing: str, path_output: str
+) -> None:
+    """Main function to run the water model and write output.
+
+    Parameters
+    ----------
+    path_reaches : str
+        Path to the reaches CSV file.
+    path_forcing : str
+        Path to the forcing CSV file.
+    path_output : str
+        Path to the output CSV file.
+    """
+    results = run_all(path_reaches, path_forcing)
+    write_output_csv(path_output, results)
+    print(f"Wrote {len(results)} rows to {path_output}")

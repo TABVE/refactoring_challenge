@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 import pytest
 
-from legacy_code.water_model import mix_concentration, mm_day_to_m3s
+from deltares_model.water_model import mix_concentration, mm_day_to_m3s
 
 
 @pytest.mark.parametrize(

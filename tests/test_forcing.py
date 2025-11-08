@@ -1,5 +1,5 @@
 from datetime import date
-from legacy_code.forcing import Forcing, initialize_forcing
+from deltares_model.forcing import Forcing, initialize_forcing
 
 
 # AI-ASSIST: all written by GitHub Copilot, added type hints manually

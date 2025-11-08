@@ -1,6 +1,6 @@
 import math
 import pytest
-from legacy_code.reach import Reach, initialize_reaches
+from deltares_model.reach import Reach, initialize_reaches
 
 # AI-ASSIST: all written by GitHub Copilot, added type hints manually
 

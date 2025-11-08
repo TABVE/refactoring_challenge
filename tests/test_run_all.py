@@ -2,10 +2,10 @@ import math
 from unittest.mock import patch
 
 
-from legacy_code.water_model import run_all
+from deltares_model.water_model import run_all
 
 
-@patch("legacy_code.water_model.read_csv_as_dicts")
+@patch("deltares_model.water_model.read_csv_as_dicts")
 def test_run_all(mock_read_csv) -> None:
     mock_forcing = [
         {
@@ -26,8 +26,7 @@ def test_run_all(mock_read_csv) -> None:
         {"reach_id": "B", "area_km2": "200", "tracer_init_mgL": "2.0"},
     ]
     mock_read_csv.side_effect = [mock_forcing, mock_reaches]
-    state = run_all()
-    results = state["rows"]
+    results = run_all("response is mocked", "response is mocked")
 
     assert len(results) == 4  # 2 dates * 2 reaches
 
