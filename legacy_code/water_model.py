@@ -13,12 +13,6 @@ from legacy_code.utils import parse_date, read_csv_as_dicts
 from legacy_code.forcing import initialize_forcing
 from legacy_code.reach import initialize_reaches
 
-# Mutable global state — smell
-STATE: Dict[str, Any] = {
-    "last_q": 0.0,
-    "rows": [],
-}
-
 
 def mm_day_to_m3s(mm_per_day: float, area_km2: float) -> float:
     """Converts mm/day over area_km2 to m^3/s.
@@ -54,7 +48,10 @@ def mix_concentration(q1: float, c1: float, q2: float, c2: float) -> float:
 
 
 def run_all():
-    beta = CONFIG.get("beta", 0.9)
+    state: Dict[str, Any] = {
+        "last_q": 0.0,
+        "rows": [],
+    }
     fpath = CONFIG.get("paths", {}).get("forcing") or "data/forcing.csv"
     rpath = CONFIG.get("paths", {}).get("reaches") or "data/reaches.csv"
 
@@ -86,7 +83,7 @@ def run_all():
 
         # Mix tracer in A: upstream boundary and local input
         reach_a.last_concentration = mix_concentration(
-            q1=1.0,    # TODO: discuss with collegues, why 1.0 here?
+            q1=1.0,  # TODO: discuss with collegues, why 1.0 here?
             c1=upstream_concentration,
             q2=reach_a.local_flow_rate,
             c2=reach_a.last_concentration,
@@ -120,19 +117,19 @@ def run_all():
             }
         )
 
-    STATE["rows"] = results
-    return results
+    state["rows"] = results
+    return state
 
 
-def write_output_csv(path: str) -> None:
-    """Writes the output to a CSV file. 
+def write_output_csv(path: str, state) -> None:
+    """Writes the output to a CSV file.
 
     Parameters
     ----------
     path
         The file path to write the CSV to.
     """
-    rows = STATE.get("rows") or []
+    rows = state.get("rows") or []
     fieldnames = ["date", "reach", "q_m3s", "c_mgL"]
     with open(path, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=fieldnames)
@@ -144,11 +141,7 @@ def write_output_csv(path: str) -> None:
 def main() -> None:
     """Main function to run the water model and write output."""
     # Hard-coded default path — smell
-    out = CONFIG.get("paths", {}).get("output", "legacy_results.csv")
-    rows = run_all()
-    write_output_csv(out)
-    print(f"Wrote {len(rows)} rows to {out}")
-
-
-if __name__ == "__main__":
-    main()
+    path_out = CONFIG.get("paths", {}).get("output", "legacy_results.csv")
+    state = run_all()
+    write_output_csv(path_out, state)
+    print(f"Wrote {len(state["rows"])} rows to {path_out}")

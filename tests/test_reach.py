@@ -2,6 +2,7 @@ import math
 import pytest
 from legacy_code.reach import Reach, initialize_reaches
 
+
 def test_reach_defaults_and_attributes():
     r = Reach(id="A", area_km2=12, tracer_init_mgL=None)
     assert r.id == "A"

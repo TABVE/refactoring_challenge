@@ -2,11 +2,11 @@
 # HINT: Avoid global mutable config and magic keys in refactor.
 
 CONFIG = {
-    "beta": 0.85,  # recession/baseflow factor (unitless)
     "conversion": {
         # Correct should be: mm/day -> m3/s = mm/1000 * area_m2 / 86400
         # Keep as comments for future reference
-        "mm_to_m": 1 / 1000.0,
+        "mm_to_m": 1
+        / 1000.0,
     },
     "paths": {
         # Hard-coded paths — smell

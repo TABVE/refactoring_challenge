@@ -10,12 +10,13 @@ from legacy_code.utils import (
     read_csv_as_dicts,
 )
 
+
 @pytest.mark.parametrize(
     "text",
     [
         "2024/01/02",
         "2024-01-02",
-        " 2024-1-2 ", # Whitespace and single-digit month/day should be handled.
+        " 2024-1-2 ",  # Whitespace and single-digit month/day should be handled.
     ],
 )
 def test_parse_date_slash(text):

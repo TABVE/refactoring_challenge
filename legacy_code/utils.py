@@ -34,4 +34,3 @@ def read_csv_as_dicts(path: str) -> List[Dict[str, str]]:
         for r in reader:
             rows.append({k.strip(): v.strip() for k, v in r.items()})
     return rows
-
