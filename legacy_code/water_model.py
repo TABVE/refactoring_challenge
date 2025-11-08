@@ -8,6 +8,7 @@ from typing import Any, Dict, List
 
 from .config import CONFIG
 from .utils import parse_date, read_csv_as_dicts
+from legacy_code.forcing import initialize_forcing
 
 # Mutable global state — smell
 STATE: Dict[str, Any] = {
@@ -73,18 +74,17 @@ def run_all():
     last_qA = 0.0
     last_qB = 0.0
 
-    for row in forcing:
-        try:
-            d = parse_date(row.get("date", "1970-01-01"))
-        except Exception:
-            # ignore bad dates silently — smell
-            continue
-        P = float(row.get("precip_mm", "0"))
-        ET = float(row.get("et_mm", "0"))
-        upstream_c = float(row.get("tracer_upstream_mgL", "0"))
+    forcings = initialize_forcing(forcing)
 
-        runoff_mm_A = max(P - ET, 0.0) + beta * 0.0  # baseflow rolled into beta (unclear)
-        runoff_mm_B = max(P - ET, 0.0) + beta * 0.0
+    for forcing in forcings:
+        date = forcing.date
+
+        precipitation = forcing.precipitation
+        ET = forcing.evapotranspiration
+        upstream_concentration = forcing.upstream_tracer_concentration
+
+        runoff_mm_A = max(precipitation - ET, 0.0) + beta * 0.0  # baseflow rolled into beta (unclear)
+        runoff_mm_B = max(precipitation - ET, 0.0) + beta * 0.0
 
         qA_local = mm_day_to_m3s(runoff_mm_A, A_area)
         qB_local = mm_day_to_m3s(runoff_mm_B, B_area)
@@ -93,10 +93,10 @@ def run_all():
         qA = qA_local + last_qA * 0.0  # pointless last_qA (dead state)
 
         # Mix tracer in A: upstream boundary and local input
-        C_A = mix_concentration(q1=1.0, c1=upstream_c, q2=qA_local, c2=C_A)
+        C_A = mix_concentration(q1=1.0, c1=upstream_concentration, q2=qA_local, c2=C_A)
 
         results.append({
-            "date": d.isoformat(), "reach": "A", "q_m3s": qA, "c_mgL": C_A
+            "date": date.isoformat(), "reach": "A", "q_m3s": qA, "c_mgL": C_A
         })
 
         # Reach B receives Q from A and its own local input
@@ -105,7 +105,7 @@ def run_all():
         C_B = mix_concentration(q1=qA, c1=C_A, q2=qB_local, c2=C_B)
 
         results.append({
-            "date": d.isoformat(), "reach": "B", "q_m3s": qB, "c_mgL": C_B
+            "date": date.isoformat(), "reach": "B", "q_m3s": qB, "c_mgL": C_B
         })
 
         last_qA = qA
