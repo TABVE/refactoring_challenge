@@ -27,7 +27,6 @@ def parse_date(text: str) -> date:
 
 def read_csv_as_dicts(path: str) -> List[Dict[str, str]]:
     """Reads a CSV file and returns a list of dictionaries."""
-    # Duplicated logic with read_csv_to_rows
     rows: List[Dict[str, str]] = []
     with open(path, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
@@ -36,13 +35,3 @@ def read_csv_as_dicts(path: str) -> List[Dict[str, str]]:
             rows.append({k.strip(): v.strip() for k, v in r.items()})
     return rows
 
-
-def read_csv_to_rows(path: str) -> List[List[str]]:
-    """Reads a CSV file and returns a list of rows (lists of strings)."""
-    # Duplicated logic with read_csv_as_dicts
-    out: List[List[str]] = []
-    with open(path, newline="", encoding="utf-8") as f:
-        reader = csv.reader(f)
-        for r in reader:
-            out.append([x.strip() for x in r])
-    return out

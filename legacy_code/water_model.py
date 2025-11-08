@@ -3,12 +3,15 @@
 
 from __future__ import annotations
 
+
+import csv
 import math
 from typing import Any, Dict, List
 
-from .config import CONFIG
-from .utils import parse_date, read_csv_as_dicts
+from legacy_code.config import CONFIG
+from legacy_code.utils import parse_date, read_csv_as_dicts
 from legacy_code.forcing import initialize_forcing
+from legacy_code.reach import initialize_reaches
 
 # Mutable global state — smell
 STATE: Dict[str, Any] = {
@@ -26,7 +29,7 @@ def mm_day_to_m3s(mm_per_day: float, area_km2: float) -> float:
     elif area_km2 < 0:
         raise ValueError("area_km2 cannot be negative")
     try:
-        return (mm_per_day / 1e3) * (area_km2 * 1e6) /86400
+        return (mm_per_day / 1e3) * (area_km2 * 1e6) / 86400
     except Exception:
         return 0.0
 
@@ -49,6 +52,7 @@ def mix_concentration(q1: float, c1: float, q2: float, c2: float) -> float:
 # Huge function doing everything.
 # noqa: C901 (complexity) — this is legacy code on purpose
 
+
 def run_all():
     beta = CONFIG.get("beta", 0.9)
     fpath = CONFIG.get("paths", {}).get("forcing") or "data/forcing.csv"
@@ -59,65 +63,75 @@ def run_all():
     if len(reaches) < 2:
         raise RuntimeError("need at least 2 reaches A and B")
 
-    # Assume reaches sorted A then B
-    A = reaches[0]
-    B = reaches[1]
-
-    A_area = float(A.get("area_km2", "0"))
-    B_area = float(B.get("area_km2", "0"))
-
-    C_A = float(A.get("tracer_init_mgL", "0"))
-    C_B = float(B.get("tracer_init_mgL", "0"))
-
     results: List[Dict[str, Any]] = []
 
-    last_qA = 0.0
-    last_qB = 0.0
-
     forcings = initialize_forcing(forcing)
+    reach_a, reach_b = initialize_reaches(reaches)
 
     for forcing in forcings:
         date = forcing.date
 
         precipitation = forcing.precipitation
-        ET = forcing.evapotranspiration
+        evaporation = forcing.evapotranspiration
         upstream_concentration = forcing.upstream_tracer_concentration
 
-        runoff_mm_A = max(precipitation - ET, 0.0) + beta * 0.0  # baseflow rolled into beta (unclear)
-        runoff_mm_B = max(precipitation - ET, 0.0) + beta * 0.0
+        reach_a.run_off = max(precipitation - evaporation, 0.0)
+        reach_b.run_off = max(precipitation - evaporation, 0.0)
 
-        qA_local = mm_day_to_m3s(runoff_mm_A, A_area)
-        qB_local = mm_day_to_m3s(runoff_mm_B, B_area)
+        reach_a.local_flow_rate = mm_day_to_m3s(reach_a.run_off, reach_a.area)
+        reach_b.local_flow_rate = mm_day_to_m3s(reach_b.run_off, reach_b.area)
 
         # Reach A total discharge (no routing)
-        qA = qA_local + last_qA * 0.0  # pointless last_qA (dead state)
+        reach_a.last_flow_rate = reach_a.local_flow_rate
 
         # Mix tracer in A: upstream boundary and local input
-        C_A = mix_concentration(q1=1.0, c1=upstream_concentration, q2=qA_local, c2=C_A)
+        reach_a.last_concentration = mix_concentration(
+            q1=1.0,    # TODO: discuss with collegues, why 1.0 here?
+            c1=upstream_concentration,
+            q2=reach_a.local_flow_rate,
+            c2=reach_a.last_concentration,
+        )
 
-        results.append({
-            "date": date.isoformat(), "reach": "A", "q_m3s": qA, "c_mgL": C_A
-        })
+        results.append(
+            {
+                "date": date.isoformat(),
+                "reach": reach_a.id,
+                "q_m3s": reach_a.last_flow_rate,
+                "c_mgL": reach_a.last_concentration,
+            }
+        )
 
         # Reach B receives Q from A and its own local input
-        qB = qB_local + qA
+        reach_b.last_flow_rate = reach_b.local_flow_rate + reach_a.last_flow_rate
 
-        C_B = mix_concentration(q1=qA, c1=C_A, q2=qB_local, c2=C_B)
+        reach_b.last_concentration = mix_concentration(
+            q1=reach_a.last_flow_rate,
+            c1=reach_a.last_concentration,
+            q2=reach_b.local_flow_rate,
+            c2=reach_b.last_concentration,
+        )
 
-        results.append({
-            "date": date.isoformat(), "reach": "B", "q_m3s": qB, "c_mgL": C_B
-        })
-
-        last_qA = qA
-        last_qB = qB
+        results.append(
+            {
+                "date": date.isoformat(),
+                "reach": reach_b.id,
+                "q_m3s": reach_b.last_flow_rate,
+                "c_mgL": reach_b.last_concentration,
+            }
+        )
 
     STATE["rows"] = results
     return results
 
 
 def write_output_csv(path: str) -> None:
-    import csv
+    """Writes the output to a CSV file. 
 
+    Parameters
+    ----------
+    path
+        The file path to write the CSV to.
+    """
     rows = STATE.get("rows") or []
     fieldnames = ["date", "reach", "q_m3s", "c_mgL"]
     with open(path, "w", newline="", encoding="utf-8") as f:
@@ -128,6 +142,7 @@ def write_output_csv(path: str) -> None:
 
 
 def main() -> None:
+    """Main function to run the water model and write output."""
     # Hard-coded default path — smell
     out = CONFIG.get("paths", {}).get("output", "legacy_results.csv")
     rows = run_all()

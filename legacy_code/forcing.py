@@ -18,9 +18,9 @@ def initialize_forcing(forcing_dicts: list[dict[str, str]]) -> list[Forcing]:
         forcings.append(
             Forcing(
                 date=parse_date(f["date"]),
-                precipitation=float(f["precip_mm"]),
-                evapotranspiration=float(f["et_mm"]),
-                upstream_tracer_concentration=float(f["tracer_upstream_mgL"]),
+                precipitation=float(f.get("precip_mm", 0)),
+                evapotranspiration=float(f.get("et_mm", 0)),
+                upstream_tracer_concentration=float(f.get("tracer_upstream_mgL", 0)),
             )
         )
     return forcings
