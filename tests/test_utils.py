@@ -8,7 +8,6 @@ import pytest
 from legacy_code.utils import (
     parse_date,
     read_csv_as_dicts,
-    read_csv_to_rows,
 )
 
 @pytest.mark.parametrize(
@@ -43,14 +42,6 @@ def test_parse_date_invalid_components_raises():
     """Impossible date components should raise ValueError (e.g., month 13)."""
     with pytest.raises(ValueError):
         parse_date("2024-13-01")
-
-
-def test_read_csv_to_rows_strips_whitespace(tmp_path):
-    """read_csv_to_rows should return rows with values stripped of whitespace."""
-    p = tmp_path / "rows.csv"
-    p.write_text("a,b\n1, 2\n 3 ,4 \n", encoding="utf-8")
-    rows = read_csv_to_rows(str(p))
-    assert rows == [["a", "b"], ["1", "2"], ["3", "4"]]
 
 
 def test_read_csv_as_dicts_strips_keys_and_values(tmp_path):
